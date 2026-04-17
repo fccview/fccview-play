@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fccview Play</title>
+    <link rel="stylesheet" href="style/style.css" />
+    <link rel="icon" href="./favicon.png" />
+  </head>
+  <body>
+    <div class="fccv-p-glass-frame">
+      <div class="fccv-p-topbar">
+        <div class="file-menu" id="file-menu">
+          <button type="button" class="file-menu-button" id="file-menu-button">
+            File ▾
+          </button>
+          <div class="file-menu-dropdown" id="file-menu-dropdown" hidden>
+            <button
+              type="button"
+              class="file-menu-item"
+              data-action="open-folder"
+            >
+              Open Folder...
+            </button>
+            <button
+              type="button"
+              class="file-menu-item"
+              data-action="open-files"
+            >
+              Open Files...
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="fccv-p-main-view">
+        <div class="visualizer-container">
+          <canvas id="visualizer"></canvas>
+          <video id="video-player" class="video-player" playsinline></video>
+        </div>
+
+        <div class="playlist-container">
+          <div class="playlist-header">
+            <div class="playlist-header-title">Now Playing</div>
+          </div>
+          <ul id="playlist"></ul>
+        </div>
+      </div>
+
+      <div class="fccv-p-control-deck">
+        <div class="progress-area" id="progress-container">
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="controls-layout">
+          <div class="left-info">
+            <div class="upload-trigger">
+              <input
+                type="file"
+                id="folder-upload"
+                webkitdirectory
+                directory
+                multiple
+              />
+              <input
+                type="file"
+                id="file-upload"
+                accept="audio/*,video/*"
+                multiple
+              />
+            </div>
+          </div>
+
+          <div class="center-transport">
+            <button id="prev-btn" class="nav-orb">
+              <div class="icon-prev"></div>
+            </button>
+            <div class="play-bezel">
+              <button id="play-btn" class="play-orb">
+                <div id="play-icon" class="icon-play"></div>
+              </button>
+            </div>
+            <button id="next-btn" class="nav-orb">
+              <div class="icon-next"></div>
+            </button>
+          </div>
+
+          <div class="right-volume">
+            <div class="icon-speaker"></div>
+            <input
+              type="range"
+              id="volume-slider"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.5"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="scripts/storage.js"></script>
+    <script src="scripts/fileMenu.js"></script>
+    <script src="scripts/player.js"></script>
+    <script src="scripts/visualizer.js"></script>
+    <script src="scripts/app.js"></script>
+  </body>
+</html>
