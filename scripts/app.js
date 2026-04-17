@@ -4,9 +4,13 @@ const videoEl = document.getElementById('video-player');
 const playlistEl = document.getElementById('playlist');
 const folderUpload = document.getElementById('folder-upload');
 const filesUpload = document.getElementById('file-upload');
+const fractalImport = document.getElementById('fractal-import');
 const fileMenuRoot = document.getElementById('file-menu');
 const fileMenuButton = document.getElementById('file-menu-button');
 const fileMenuDropdown = document.getElementById('file-menu-dropdown');
+const animMenuRoot = document.getElementById('anim-menu');
+const animMenuButton = document.getElementById('anim-menu-button');
+const animMenuDropdown = document.getElementById('anim-menu-dropdown');
 const playBtn = document.getElementById('play-btn');
 const playIcon = document.getElementById('play-icon');
 const prevBtn = document.getElementById('prev-btn');
@@ -18,7 +22,7 @@ const trackInfo = document.getElementById('track-info');
 const trackInfoName = document.getElementById('track-info-name');
 const trackInfoTime = document.getElementById('track-info-time');
 
-const TOTAL_MODES = 9;
+window.FFCV_P_loadPersistedFractals();
 
 const player = window.FFCV_P_createPlayer({
   playlistEl,
@@ -33,7 +37,7 @@ const player = window.FFCV_P_createPlayer({
   trackTimeEl: trackInfoTime
 });
 
-const visualizer = window.FFCV_P_createVisualizer({ canvas, ctx, totalModes: TOTAL_MODES });
+const visualizer = window.FFCV_P_createVisualizer({ canvas, ctx });
 
 function _syncVisualizerAudio() {
   const analyser = player.getAnalyser();
@@ -55,6 +59,39 @@ window.FFCV_P_setupFileMenu({
   filesInput: filesUpload,
   onOpenDropdown() { },
   onCloseDropdown() { }
+});
+
+const animMenu = window.FFCV_P_setupAnimationsMenu({
+  menuRoot: animMenuRoot,
+  button: animMenuButton,
+  dropdown: animMenuDropdown,
+  importInput: fractalImport,
+  getCurrentId: () => visualizer.getCurrentId(),
+  onSelect(fractalId) {
+    const list = window.FFCV_P_getFractals();
+    const idx = list.findIndex((f) => f.id === fractalId);
+    if (idx >= 0) visualizer.setVizMode(idx, { persist: true });
+  }
+});
+
+window.FFCV_P_onFractalRegistered = () => {
+  visualizer.refreshFractals();
+};
+window.FFCV_P_onFractalRemoved = () => {
+  visualizer.refreshFractals();
+};
+
+fractalImport.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  window.FFCV_P_importFractalFile(file).then(() => {
+    const list = window.FFCV_P_getFractals();
+    const lastIdx = list.length - 1;
+    if (lastIdx >= 0) visualizer.setVizMode(lastIdx, { persist: true });
+  }).catch((err) => {
+    console.warn('fractal import failed:', err);
+  });
+  fractalImport.value = '';
 });
 
 folderUpload.addEventListener('change', (e) => {

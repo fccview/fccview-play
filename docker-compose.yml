@@ -3,3 +3,5 @@ services:
     image: ghcr.io/fccview/fccview-play:latest
     ports:
       - "40912:80"
+    volumes:
+      - ./fractals:/usr/share/nginx/html/scripts/fractals/user

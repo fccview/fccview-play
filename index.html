@@ -30,6 +30,13 @@
             </button>
           </div>
         </div>
+        <div class="anim-menu" id="anim-menu">
+          <button type="button" class="file-menu-button" id="anim-menu-button">
+            Animations ▾
+          </button>
+          <div class="anim-menu-dropdown file-menu-dropdown" id="anim-menu-dropdown" hidden>
+          </div>
+        </div>
       </div>
       <div class="fccv-p-main-view">
         <div class="visualizer-container">
@@ -67,6 +74,12 @@
                 id="file-upload"
                 accept="audio/*,video/*"
                 multiple
+              />
+              <input
+                type="file"
+                id="fractal-import"
+                accept=".js"
+                hidden
               />
             </div>
             <div class="track-info" id="track-info" hidden>
@@ -107,7 +120,11 @@
     <script src="scripts/storage.js"></script>
     <script src="scripts/fileMenu.js"></script>
     <script src="scripts/player.js"></script>
+    <script src="scripts/fractals/registry.js"></script>
+    <script src="scripts/fractals/loader.js"></script>
+    <script src="scripts/fractals/userLoader.js"></script>
     <script src="scripts/visualizer.js"></script>
+    <script src="scripts/animationsMenu.js"></script>
     <script src="scripts/app.js"></script>
   </body>
 </html>
