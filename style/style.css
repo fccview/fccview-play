@@ -198,6 +198,33 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
+  min-width: 0;
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.2;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.7);
+}
+
+.track-info-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #cddcf0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-info-time {
+  font-size: 11px;
+  color: #8fa6c2;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
 }
 
 .upload-trigger label,

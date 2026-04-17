@@ -1,16 +1,10 @@
-function isAudioFile(file) {
-  return file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(file.name);
-}
+const _isAudioFile = (file) => file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(file.name);
 
-function isVideoFile(file) {
-  return file.type.startsWith('video/') || /\.(mp4|webm|mov|m4v|ogv)$/i.test(file.name);
-}
+const _isVideoFile = (file) => file.type.startsWith('video/') || /\.(mp4|webm|mov|m4v|ogv)$/i.test(file.name);
 
-function isPlayableFile(file) {
-  return isAudioFile(file) || isVideoFile(file);
-}
+const _isPlayableFile = (file) => _isAudioFile(file) || _isVideoFile(file);
 
-window.FFCV_P_createPlayer = function createPlayer(options) {
+window.FFCV_P_createPlayer = (options) => {
   const {
     playlistEl,
     playIconEl,
@@ -18,8 +12,22 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     progressFillEl,
     volumeSliderEl,
     videoEl,
-    canvasEl
+    canvasEl,
+    trackInfoEl,
+    trackNameEl,
+    trackTimeEl
   } = options;
+
+  const _formatTime = (seconds) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+    const total = Math.floor(seconds);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    const _pad = (n) => String(n).padStart(2, '0');
+    if (h > 0) return h + ':' + _pad(m) + ':' + _pad(s);
+    return m + ':' + _pad(s);
+  };
 
   const media = videoEl;
   let audioContext = null;
@@ -39,7 +47,7 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     media.volume = storedVolume;
   }
 
-  function setupAudioGraph() {
+  function _setupAudioGraph() {
     if (audioContext) return;
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
@@ -52,7 +60,7 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     analyser.connect(audioContext.destination);
   }
 
-  function renderPlaylist() {
+  function _renderPlaylist() {
     playlistEl.innerHTML = '';
     tracks.forEach((t, i) => {
       const li = document.createElement('li');
@@ -63,9 +71,27 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     });
   }
 
-  function setPlaying(next) {
+  function _updateTrackInfoVisibility() {
+    if (!trackInfoEl) return;
+    const file = tracks[currentIndex];
+    trackInfoEl.hidden = !(isPlaying && file);
+  }
+
+  function _updateTrackName() {
+    if (!trackNameEl) return;
+    const file = tracks[currentIndex];
+    trackNameEl.textContent = file ? file.name : '';
+  }
+
+  function _updateTimeDisplay() {
+    if (!trackTimeEl) return;
+    trackTimeEl.textContent = _formatTime(media.currentTime) + ' / ' + _formatTime(media.duration);
+  }
+
+  function _setPlaying(next) {
     isPlaying = next;
     playIconEl.className = isPlaying ? 'icon-pause' : 'icon-play';
+    _updateTrackInfoVisibility();
     if ('mediaSession' in navigator) {
       try {
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
@@ -75,7 +101,7 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     }
   }
 
-  function updateMediaSessionMetadata() {
+  function _updateMediaSessionMetadata() {
     if (!('mediaSession' in navigator)) return;
     const file = tracks[currentIndex];
     if (!file) return;
@@ -86,10 +112,10 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     }
   }
 
-  function setupMediaSessionActions() {
+  function _setupMediaSessionActions() {
     if (!('mediaSession' in navigator)) return;
     const ms = navigator.mediaSession;
-    const safe = (fn) => () => {
+    const _safe = (fn) => () => {
       try {
         fn();
       } catch {
@@ -97,38 +123,38 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
       }
     };
     try {
-      ms.setActionHandler('play', safe(() => {
+      ms.setActionHandler('play', _safe(() => {
         if (tracks.length === 0) return;
-        audio.play();
-        setPlaying(true);
+        media.play();
+        _setPlaying(true);
       }));
-      ms.setActionHandler('pause', safe(() => {
-        audio.pause();
-        setPlaying(false);
+      ms.setActionHandler('pause', _safe(() => {
+        media.pause();
+        _setPlaying(false);
       }));
-      ms.setActionHandler('previoustrack', safe(() => previousTrack()));
-      ms.setActionHandler('nexttrack', safe(() => nextTrack()));
-      ms.setActionHandler('seekbackward', safe((details) => {
+      ms.setActionHandler('previoustrack', _safe(() => previousTrack()));
+      ms.setActionHandler('nexttrack', _safe(() => nextTrack()));
+      ms.setActionHandler('seekbackward', _safe((details) => {
         const offset = details && typeof details.seekOffset === 'number' ? details.seekOffset : 10;
         seekBy(-offset);
       }));
-      ms.setActionHandler('seekforward', safe((details) => {
+      ms.setActionHandler('seekforward', _safe((details) => {
         const offset = details && typeof details.seekOffset === 'number' ? details.seekOffset : 10;
         seekBy(offset);
       }));
-      ms.setActionHandler('seekto', safe((details) => {
+      ms.setActionHandler('seekto', _safe((details) => {
         if (!details || typeof details.seekTime !== 'number') return;
-        if (!Number.isFinite(audio.duration)) return;
-        audio.currentTime = Math.max(0, Math.min(details.seekTime, audio.duration));
+        if (!Number.isFinite(media.duration)) return;
+        media.currentTime = Math.max(0, Math.min(details.seekTime, media.duration));
       }));
     } catch {
       return;
     }
   }
 
-  setupMediaSessionActions();
+  _setupMediaSessionActions();
 
-  function showVideoUI(shouldShow) {
+  function _showVideoUI(shouldShow) {
     videoEl.hidden = !shouldShow;
     canvasEl.hidden = shouldShow;
   }
@@ -137,21 +163,23 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     const autoplay = opts && typeof opts.autoplay === 'boolean' ? opts.autoplay : true;
     currentIndex = index;
     const file = tracks[index];
-    renderPlaylist();
+    _renderPlaylist();
 
-    setupAudioGraph();
+    _setupAudioGraph();
     if (audioContext) audioContext.resume();
 
     media.src = file ? URL.createObjectURL(file) : '';
-    updateMediaSessionMetadata();
+    _updateMediaSessionMetadata();
+    _updateTrackName();
+    _updateTimeDisplay();
 
-    showVideoUI(Boolean(file && isVideoFile(file)));
+    _showVideoUI(Boolean(file && _isVideoFile(file)));
 
     if (autoplay && file) {
       media.play();
-      setPlaying(true);
+      _setPlaying(true);
     } else {
-      setPlaying(false);
+      _setPlaying(false);
     }
   }
 
@@ -159,10 +187,10 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     if (tracks.length === 0) return;
     if (media.paused) {
       media.play();
-      setPlaying(true);
+      _setPlaying(true);
     } else {
       media.pause();
-      setPlaying(false);
+      _setPlaying(false);
     }
   }
 
@@ -183,17 +211,21 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
   }
 
   function setTracksFromFileList(fileList) {
-    const files = Array.from(fileList).filter(isPlayableFile);
+    const files = Array.from(fileList).filter(_isPlayableFile);
     if (files.length === 0) return;
     tracks = files;
     currentIndex = 0;
-    renderPlaylist();
+    _renderPlaylist();
     loadTrack(0, { autoplay: true });
   }
 
   media.ontimeupdate = () => {
+    _updateTimeDisplay();
     if (!media.duration) return;
     progressFillEl.style.width = ((media.currentTime / media.duration) * 100) + '%';
+  };
+  media.onloadedmetadata = () => {
+    _updateTimeDisplay();
   };
   media.onended = () => nextTrack();
 
@@ -211,22 +243,14 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
   };
 
   return {
-    getAnalyser() {
-      return analyser;
-    },
-    getDataArrays() {
-      return { dataArrayFreq, dataArrayTime, bufferLength };
-    },
-    getIsPlaying() {
-      return isPlaying;
-    },
-    isCurrentVideo() {
+    getAnalyser: () => analyser,
+    getDataArrays: () => ({ dataArrayFreq, dataArrayTime, bufferLength }),
+    getIsPlaying: () => isPlaying,
+    isCurrentVideo: () => {
       const file = tracks[currentIndex];
-      return Boolean(file && isVideoFile(file));
+      return Boolean(file && _isVideoFile(file));
     },
-    getMediaEl() {
-      return media;
-    },
+    getMediaEl: () => media,
     togglePlay,
     nextTrack,
     previousTrack,
@@ -235,4 +259,3 @@ window.FFCV_P_createPlayer = function createPlayer(options) {
     setTracksFromFileList
   };
 };
-

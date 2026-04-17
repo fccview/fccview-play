@@ -1,0 +1,7 @@
+services:
+  web-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "40913:80"

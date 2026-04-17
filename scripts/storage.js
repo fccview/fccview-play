@@ -3,7 +3,7 @@ window.FFCV_P_STORAGE_KEYS = {
   vizMode: 'fccv-p.vizMode'
 };
 
-window.FFCV_P_lsGet = function lsGet(key) {
+window.FFCV_P_lsGet = (key) => {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -18,4 +18,3 @@ window.FFCV_P_lsSet = function lsSet(key, value) {
     return;
   }
 };
-
