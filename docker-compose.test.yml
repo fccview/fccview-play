@@ -3,5 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - ./songs:/usr/share/nginx/html/songs
     ports:
       - "40913:80"

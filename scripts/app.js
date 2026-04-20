@@ -51,6 +51,48 @@ function _syncVisualizerAudio() {
   });
 }
 
+const _urlParams = new URLSearchParams(window.location.search);
+const _preloadSongs = _urlParams.getAll('song');
+const _embedMode = _urlParams.get('embed') === '1';
+
+if (_embedMode) document.body.classList.add('embed');
+
+const _embedOverlay = document.getElementById('embed-overlay');
+const _embedOverlayBtn = document.getElementById('embed-overlay-btn');
+
+const _dismissEmbedOverlay = () => {
+  if (!_embedOverlay) return;
+  _embedOverlay.hidden = true;
+  player.togglePlay();
+  _syncVisualizerAudio();
+  if (!player.isCurrentVideo()) visualizer.start(() => player.getIsPlaying());
+};
+
+if (_embedMode && _embedOverlay && _embedOverlayBtn) {
+  _embedOverlay.hidden = false;
+  _embedOverlayBtn.addEventListener('click', _dismissEmbedOverlay);
+}
+
+const _copyEmbedCode = async () => {
+  const params = new URLSearchParams(window.location.search);
+  let songs = params.getAll('song');
+  if (songs.length === 0) {
+    const input = window.prompt('Song URL(s) to embed. Separate multiple with a newline or comma:', '');
+    if (!input) return;
+    songs = input.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+  }
+  const base = window.location.origin + window.location.pathname;
+  const query = songs.map((s) => 'song=' + encodeURIComponent(s)).join('&') + '&embed=1';
+  const embedUrl = base + '?' + query;
+  const code = '<iframe src="' + embedUrl + '" width="400" height="400" frameborder="0" allow="autoplay; fullscreen"></iframe>';
+  try {
+    await navigator.clipboard.writeText(code);
+    window.alert('Embed code copied to clipboard!');
+  } catch {
+    window.prompt('Copy the embed code:', code);
+  }
+};
+
 window.FFCV_P_setupFileMenu({
   menuRoot: fileMenuRoot,
   button: fileMenuButton,
@@ -58,8 +100,15 @@ window.FFCV_P_setupFileMenu({
   folderInput: folderUpload,
   filesInput: filesUpload,
   onOpenDropdown() { },
-  onCloseDropdown() { }
+  onCloseDropdown() { },
+  onCopyEmbed: _copyEmbedCode
 });
+
+if (_preloadSongs.length > 0) {
+  player.setTracksFromUrls(_preloadSongs, { autoplay: false });
+  _syncVisualizerAudio();
+  if (!player.isCurrentVideo()) visualizer.start(() => player.getIsPlaying());
+}
 
 const animMenu = window.FFCV_P_setupAnimationsMenu({
   menuRoot: animMenuRoot,

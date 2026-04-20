@@ -4,6 +4,22 @@ const _isVideoFile = (file) => file.type.startsWith('video/') || /\.(mp4|webm|mo
 
 const _isPlayableFile = (file) => _isAudioFile(file) || _isVideoFile(file);
 
+const _urlIsVideo = (url) => /\.(mp4|webm|mov|m4v|ogv)(\?.*)?$/i.test(url);
+
+const _nameFromUrl = (url) => {
+  try {
+    const u = new URL(url, window.location.href);
+    const last = u.pathname.split('/').filter(Boolean).pop();
+    return decodeURIComponent(last || u.hostname);
+  } catch {
+    return url;
+  }
+};
+
+const _trackName = (t) => (t instanceof File ? t.name : t.name);
+const _trackUrl = (t) => (t instanceof File ? URL.createObjectURL(t) : t.url);
+const _trackIsVideo = (t) => (t instanceof File ? _isVideoFile(t) : Boolean(t.isVideo));
+
 window.FFCV_P_createPlayer = (options) => {
   const {
     playlistEl,
@@ -64,7 +80,7 @@ window.FFCV_P_createPlayer = (options) => {
     playlistEl.innerHTML = '';
     tracks.forEach((t, i) => {
       const li = document.createElement('li');
-      li.textContent = t.name;
+      li.textContent = _trackName(t);
       li.onclick = () => loadTrack(i, { autoplay: true });
       if (i === currentIndex) li.classList.add('playing');
       playlistEl.appendChild(li);
@@ -80,7 +96,7 @@ window.FFCV_P_createPlayer = (options) => {
   function _updateTrackName() {
     if (!trackNameEl) return;
     const file = tracks[currentIndex];
-    trackNameEl.textContent = file ? file.name : '';
+    trackNameEl.textContent = file ? _trackName(file) : '';
   }
 
   function _updateTimeDisplay() {
@@ -106,7 +122,7 @@ window.FFCV_P_createPlayer = (options) => {
     const file = tracks[currentIndex];
     if (!file) return;
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: file.name });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: _trackName(file) });
     } catch {
       return;
     }
@@ -168,12 +184,14 @@ window.FFCV_P_createPlayer = (options) => {
     _setupAudioGraph();
     if (audioContext) audioContext.resume();
 
-    media.src = file ? URL.createObjectURL(file) : '';
+    if (file && !(file instanceof File)) media.crossOrigin = 'anonymous';
+    else media.removeAttribute('crossorigin');
+    media.src = file ? _trackUrl(file) : '';
     _updateMediaSessionMetadata();
     _updateTrackName();
     _updateTimeDisplay();
 
-    _showVideoUI(Boolean(file && _isVideoFile(file)));
+    _showVideoUI(Boolean(file && _trackIsVideo(file)));
 
     if (autoplay && file) {
       media.play();
@@ -185,6 +203,7 @@ window.FFCV_P_createPlayer = (options) => {
 
   function togglePlay() {
     if (tracks.length === 0) return;
+    if (audioContext && audioContext.state === 'suspended') audioContext.resume();
     if (media.paused) {
       media.play();
       _setPlaying(true);
@@ -219,6 +238,20 @@ window.FFCV_P_createPlayer = (options) => {
     loadTrack(0, { autoplay: true });
   }
 
+  function setTracksFromUrls(urls, opts) {
+    const autoplay = opts && typeof opts.autoplay === 'boolean' ? opts.autoplay : false;
+    const list = (Array.isArray(urls) ? urls : [urls]).filter(Boolean).map((u) => ({
+      url: u,
+      name: _nameFromUrl(u),
+      isVideo: _urlIsVideo(u)
+    }));
+    if (list.length === 0) return;
+    tracks = list;
+    currentIndex = 0;
+    _renderPlaylist();
+    loadTrack(0, { autoplay });
+  }
+
   media.ontimeupdate = () => {
     _updateTimeDisplay();
     if (!media.duration) return;
@@ -248,7 +281,7 @@ window.FFCV_P_createPlayer = (options) => {
     getIsPlaying: () => isPlaying,
     isCurrentVideo: () => {
       const file = tracks[currentIndex];
-      return Boolean(file && _isVideoFile(file));
+      return Boolean(file && _trackIsVideo(file));
     },
     getMediaEl: () => media,
     togglePlay,
@@ -256,6 +289,7 @@ window.FFCV_P_createPlayer = (options) => {
     previousTrack,
     seekBy,
     loadTrack,
-    setTracksFromFileList
+    setTracksFromFileList,
+    setTracksFromUrls
   };
 };

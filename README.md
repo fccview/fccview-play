@@ -67,6 +67,33 @@ Drop `.js` files into `scripts/fractals/user/` and create an `index.json` listin
 
 You can also import fractals at runtime via **Animations ▾ → Import Fractal…** — these are saved to `localStorage` and persist across reloads.
 
+## Embedding the player
+
+Mount a songs folder and reference tracks via URL params so you can drop the player into any dashboard or page.
+
+```yaml
+volumes:
+  - ./songs:/usr/share/nginx/html/songs
+```
+
+Drop audio/video files into `./songs/` and embed with:
+
+```html
+<iframe
+  src="http://localhost:40912/?song=/songs/track.mp3&embed=1"
+  width="400" height="400" frameborder="0"
+  allow="autoplay; fullscreen">
+</iframe>
+```
+
+For a playlist, repeat `song=`:
+
+```
+?song=/songs/a.mp3&song=/songs/b.mp3&embed=1
+```
+
+The **File ▾ → Copy Embed Code** menu generates this snippet for you (accepts comma or newline-separated URLs). Embed mode hides the playlist/sidebar and shows a click-to-start overlay (browsers block autoplay without a user gesture).
+
 <details>
 <summary><strong>Writing a fractal</strong></summary>
 

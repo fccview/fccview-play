@@ -15,6 +15,7 @@ yarn-error.log*
 # Local env
 .env
 .env.*
+songs
 
 # Build outputs (if introduced later)
 dist

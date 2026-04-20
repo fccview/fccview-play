@@ -7,6 +7,11 @@
     <link rel="icon" href="./favicon.png" />
   </head>
   <body>
+    <div class="fccv-p-embed-overlay" id="embed-overlay" hidden>
+      <button type="button" id="embed-overlay-btn" class="embed-overlay-btn">
+        <div class="icon-play"></div>
+      </button>
+    </div>
     <div class="fccv-p-glass-frame">
       <div class="fccv-p-topbar">
         <div class="file-menu" id="file-menu">
@@ -27,6 +32,13 @@
               data-action="open-files"
             >
               Open Files...
+            </button>
+            <button
+              type="button"
+              class="file-menu-item"
+              data-action="copy-embed"
+            >
+              Copy Embed Code
             </button>
           </div>
         </div>

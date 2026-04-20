@@ -6,7 +6,8 @@ window.FFCV_P_setupFileMenu = function setupFileMenu(options) {
     folderInput,
     filesInput,
     onOpenDropdown,
-    onCloseDropdown
+    onCloseDropdown,
+    onCopyEmbed
   } = options;
 
   let open = false;
@@ -41,6 +42,7 @@ window.FFCV_P_setupFileMenu = function setupFileMenu(options) {
     if (!action) return;
     if (action === 'open-folder') folderInput.click();
     if (action === 'open-files') filesInput.click();
+    if (action === 'copy-embed' && typeof onCopyEmbed === 'function') onCopyEmbed();
     _setOpen(false);
   });
 

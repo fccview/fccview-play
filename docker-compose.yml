@@ -5,3 +5,4 @@ services:
       - "40912:80"
     volumes:
       - ./fractals:/usr/share/nginx/html/scripts/fractals/user
+      - ./songs:/usr/share/nginx/html/songs
